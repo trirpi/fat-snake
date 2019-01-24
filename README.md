@@ -5,13 +5,13 @@ Fun singleplayer game. Don't touch the other snakes and eat the dots. I you mana
 ## Run
 
 1. Make sure pygame is installed
-
+```
     $ sudo apt install pygame
-
+```
 2. Run the `game.py` file
-
+```
     $ python game.py
-
+```
 ## Screenshot
 
 <img src="https://i.imgur.com/sIQo1hx.png">
