@@ -173,3 +173,40 @@ def _get_random_color():
     return (random.randint(0, 255),
             random.randint(0, 255),
             random.randint(0, 255))
+
+
+class DangerousWarning(object):
+
+    def __init__(self, surface, position):
+        self.surface = surface
+        self.color = pygame.Color(255,0,0)
+        self.width = 10
+        self.position = (self.width, position[1])
+        self.disappear = 50
+
+    def draw(self):
+        pygame.draw.rect(self.surface, self.color, (self.position[0], self.position[1], self.width, 20))
+        pygame.draw.rect(self.surface, self.color, (self.position[0], self.position[1]+25, self.width,5))
+
+        self.disappear -= 1
+        if self.disappear == 0:
+            return True
+        return False
+
+class StickyWarning(object):
+
+    def __init__(self, surface, position):
+        self.surface = surface
+        self.color = pygame.Color(255,0,0)
+        self.width = 10
+        self.position = (self.width, position[1])
+        self.disappear = 50
+
+    def draw(self):
+        pygame.draw.rect(self.surface, self.color, (self.position[0], self.position[1], self.width, 20))
+        pygame.draw.rect(self.surface, self.color, (self.position[0], self.position[1]+25, self.width,5))
+
+        self.disappear -= 1
+        if self.disappear == 0:
+            return True
+        return False

@@ -7,7 +7,7 @@ import pygame.locals as GAME_GLOBALS
 import pygame.event as GAME_EVENTS
 
 import settings
-from characters import Food, MainSnake, DangerousSnake, StickySnake
+from characters import Food, MainSnake, DangerousSnake, StickySnake, StickyWarning, DangerousWarning
 
 
 def distance_between_points(pos1, pos2):
@@ -32,7 +32,7 @@ def snake_touches_food(snake, food):
 
 
 class Game(object):
-    background_color = (22, 28, 34)
+    background_color = (34, 40, 52)
 
     game_started = False
     game_ended = False
@@ -42,26 +42,43 @@ class Game(object):
     foods = []
     dangerous_snakes = []
     sticky_snakes = []
+    dangerous_warnings = []
+    sticky_warnings = []
+
     main_snake = None
 
-    game_over_image = pygame.image.load('assets/game_over.png')
+    game_over_image = pygame.image.load('assets/restart.png')
     title_image = pygame.image.load('assets/start.png')
-    you_won_image = pygame.image.load('assets/you_won.png')
+    you_won_image = pygame.image.load('assets/won.png')
 
     def __init__(self, width, height):
         pygame.init()
-        pygame.display.set_caption('Slither!')
+        pygame.display.set_caption('Fat Snake!')
 
         self.clock = pygame.time.Clock()
         self.surface = pygame.display.set_mode((width, height))
         self.surface.fill(self.background_color)
         self.mouse_pos = pygame.mouse.get_pos()
 
+        self.dangerous_rounds = {
+            snake_round: (0, random.randint(0, settings.window_height))
+            for snake_round in settings.rounds_with_dangerous_snake
+        }
+
+        self.sticky_rounds = {
+            snake_round: (0, 30)
+            for snake_round in settings.rounds_with_sticky_snake
+        }
+
     def reset_characters(self):
         self.foods = []
 
         self.dangerous_snakes = []
         self.sticky_snakes = []
+
+        self.dangerous_warnings = []
+        self.sticky_warnings = []
+
         self.main_snake = None
 
     def clear_screen(self):
@@ -120,15 +137,15 @@ class Game(object):
                 pygame.display.update()
 
             elif self.won:
-                self.surface.blit(self.scale_image_to_screen(self.you_won_image), (0, 0))
+                self.surface.blit(self.you_won_image, (settings.window_width/2-250, settings.window_height/2-250))
                 pygame.display.flip()
 
             elif self.game_ended:
-                self.surface.blit(self.scale_image_to_screen(self.game_over_image), (0, 0))
+                self.surface.blit(self.game_over_image, (settings.window_width/2-250, settings.window_height/2-250))
                 pygame.display.flip()
 
             else:
-                self.surface.blit(self.scale_image_to_screen(self.title_image), (0, 0))
+                self.surface.blit(self.title_image, (settings.window_width/2-250, settings.window_height/2-250))
                 pygame.display.flip()
 
     def handle_movements(self):
@@ -158,17 +175,32 @@ class Game(object):
             if snakes_touch(self.main_snake, sticky_snake):
                 self.game_over()
 
+        for warning in self.dangerous_warnings:
+            if warning.draw():  # if not needed
+                self.dangerous_warnings.remove(warning)
+
+        for warning in self.sticky_warnings:
+            if warning.draw():  # if not needed
+                self.sticky_warnings.remove(warning)
+
     def create_extra_snakes(self):
-        if self.round in settings.rounds_with_dangerous_snake:
+
+        # check to warn player for dangerous snakes
+        if self.round+50 in self.dangerous_rounds:
+            self.dangerous_warnings.append(DangerousWarning(self.surface, self.dangerous_rounds[self.round+50]))
+
+        if self.round+50 in self.sticky_rounds:
+            self.sticky_warnings.append(StickyWarning(self.surface, self.sticky_rounds[self.round+50]))
+
+
+        if self.round in self.dangerous_rounds:
             self.dangerous_snakes.append(
-                DangerousSnake(
-                    self.surface,
-                    (0, random.randint(0, settings.window_height))))
+                DangerousSnake(self.surface, self.dangerous_rounds[self.round]))
 
         if self.round in settings.rounds_with_sticky_snake:
             self.sticky_snakes.append(
-                StickySnake(
-                    self.surface, (0, 0)))
+                StickySnake(self.surface, self.sticky_rounds[self.round]))
+
 
     def scale_image_to_screen(self, image):
         return pygame.transform.scale(image, (self.surface.get_width(), self.surface.get_height()))
